@@ -1,0 +1,355 @@
+---
+title: "01-RR-ThermoTM-Example"
+author: "Anoff Nicholas Cobblah"
+date: "August 2, 2018"
+output: html_document
+---
+
+## Thermodynamics of *The Time Machine*
+
+In my honors thesis at the University of Missouri, titled *Time Travel and Entropic Control in Victorian Literature*, I argued that scholarship on Wells tended to imply that Well's interest in thermodynamics and the concept of the heat death of the universe were limited limited to the scenes set 30 million years in the future.  In contrast, I argued that Well's interest in thermodynamics is evident throughout the text: that the low-energy death of the sun relies on his characterizations of the 1800s and 802,701 as higher energy systems. While there was certainly more focus on thermodynamic concepts in the scenes set further in the future, I pointed out that there was still some thermodynamic details to be interpreted earlier in the novel. The purpose of this section is to attempt to verify this by visualizing the appearance of certain terms associated with the thermodynamic concepts of heath, light, cold, and dark. As is common within the recreational reckoning methodology, the appearance of these concepts is picked up by the script by reference to terms such as "blaze," "bright," "blizzard," and "darkness."  The choice of terms is of course somewhat arbitrary: I have to the best of my ability included terms which I believe the Victorians associated with the concepts of heat, light, cold, and darkness, but this list is meant to be suggestive rather than comprehensive. The list cannot adjust for the context in which the term was used--for instance, "less heat" would be visualized as a reference to heat rather than a reference to cold.  But the hope is that on the large scale, these fine details blend in with the larger impression of the shape of the narrative: a shape which I believe will show a path from high energy to low energy states over the course of the novel.
+
+**To see this application, "TMThermoApp <- TRUE" must be entered in the parameters section below.**
+
+```{r}
+TMThermoApp <- TRUE
+
+## Other Parameters
+    TMThermolocation <- paste0(getwd(),"/Applications/Wells-1894-The-Time-Machine")
+    TMThermodoclocation1 <- paste0(TMThermolocation,"/Documents/Full")
+    TMThermodoclocation2 <- paste0(TMThermolocation,"/Documents/Chapters")
+    TMThermolongconlength <- 250
+    TMThermoshortconlength <- 3
+    TMThermoPOSconlength <- 10
+    heatterms <- c("blaze","bonfire","caloric","candle", "char","coal","combust","combustion","conflagration","ember","fire", "flame","heat", "hot", "ignite","inferno","kindle","phlogiston","pyre","scorch","smoke","summer","sun","warm")
+lightterms <- c("bright", "day","glow","light","luminous","radiate","ray","shine")
+coldterms <- c("arctic","blizzard","chill","cold","cool","freeze","frigid","frost","frosted","ice","icicle","snow","snowball","snowflake","winter")
+darkterms <- c("dark","darkness","dim","dying","extinguish","night")
+    TMThermosearchedtermlist <- c(heatterms,lightterms,coldterms,darkterms)
+    TMThermooutputlocation <- TMThermolocation
+    TMThermoWordFlagdfFullPath <- paste0(TMThermooutputlocation,"/","TMThermoWordFlagdfFull.txt")
+    TMThermoWordFlagdfChaptersPath <- paste0(TMThermooutputlocation,"/","TMThermoWordFlagdfChapters.txt")
+```
+
+**IMPORTANT NOTE: Since creating a Word Flag matrix can take a nontrivial amount of time for larger corpuses, this script is designed only to run the program to create a new TMThermoWordFlagdf if there is a change to the dataset in folder "Documents" or if the previous TMThermoWordFlagdf has been deleted.**
+
+To create the data frame compiling every reference to a term **in the full novel**, run the following script.
+
+```{r TMThermoApp Word Flag}
+
+if(TMThermoApp == TRUE) {
+      if(file.exists(TMThermoWordFlagdfFullPath) == TRUE) {
+        TMThermoDataChange2 <- FALSE
+        print("The previous TMThermoWordFlagdf still exists.")
+      }else{
+        TMThermoDataChange2 <- TRUE
+        print("The previous TMThermowordFlagdf seems to have been moved or deleted.  A new TMThermoWordFlag will therefore be created.")
+        }
+
+  if(TMThermoDataChange2 == TRUE) {
+  
+      files <- list.files(path = TMThermodoclocation1, pattern = "txt", full.names = TRUE) #creates vector of txt file names.
+      if(file.exists(TMThermooutputlocation) == FALSE){dir.create(TMThermooutputlocation)}
+      TMThermostemsearchedtermlist <- unique(wordStem(TMThermosearchedtermlist)) #lemmatizes the list of terms you want to search for.
+      TMThermoWordFlagmat <- matrix(,ncol=13,nrow=1)
+      for (i in 1:length(files)) {
+        fileName <- read_file(files[i])
+        Encoding(fileName) <- "UTF-8"  #since tokenize_sentences function requires things to be encoded in UTF-8, need to remove some data.
+        fileName <- iconv(fileName, "UTF-8", "UTF-8",sub='')
+        ltoken <- tokenize_words(fileName, lowercase = TRUE, stopwords = NULL, simplify = FALSE)
+        ltoken <- unlist(ltoken)
+        stemltoken <- wordStem(ltoken) #this uses the Snowball library to lemmatize the entire text.
+        textID <- i
+        for (p in 1:length(TMThermostemsearchedtermlist)) {
+          TMThermostemsearchedterm <- TMThermostemsearchedtermlist[p]
+          for (j in 1:length(stemltoken)) {
+              if (TMThermostemsearchedterm == stemltoken[j]) {
+                if (j <= TMThermolongconlength) {longtempvec <- ltoken[(1:(j+TMThermolongconlength))]}
+                if (j > TMThermolongconlength) {longtempvec <- ltoken[(j-TMThermolongconlength):(j+TMThermolongconlength)]}
+                if (j <= TMThermoshortconlength) {shorttempvec <- ltoken[(1:(j+TMThermoshortconlength))]}
+                if (j > TMThermoshortconlength) {shorttempvec <- ltoken[(j-TMThermoshortconlength):(j+TMThermoshortconlength)]}
+                if (j <= TMThermoPOSconlength) {POStempvec <- ltoken[(1:(j+TMThermoPOSconlength))]}
+                if (j > TMThermoPOSconlength) {POStempvec <- ltoken[(j-TMThermoPOSconlength):(j+TMThermoPOSconlength)]}
+                TempTextName <- gsub(paste0(TMThermodoclocation1,"/"),"",files[i]) #This grabs just the end of the file path.
+                TempTextName <- gsub(".txt","",TempTextName) #This removes the .txt from the end of the name.
+                temprow <- matrix(,ncol=13,nrow=1)
+                colnames(temprow) <- c("Text", "Text_ID", "TMThermostemsearchedterm","Lemma","Lemma_Perc","KWIC","Total_Lemma","Date","Category","Short_KWIC","POS_KWIC","Current_Date","TMThermostemsearchedtermID")
+                temprow[1,1] <- TempTextName
+                temprow[1,2] <- textID
+                temprow[1,3] <- TMThermostemsearchedterm
+                temprow[1,4] <- j
+                temprow[1,5] <- (j/length(stemltoken))*100
+                temprow[1,6] <- as.character(paste(longtempvec,sep= " ",collapse=" "))
+                temprow[1,7] <- length(stemltoken)
+                temprow[1,8] <- strsplit(TempTextName,"_")[[1]][2]
+                #Determining Category
+                  if(TMThermostemsearchedterm %in% wordStem(heatterms)) {temprow[1,9] <- "Heat-Rhetoric"}
+                  if(TMThermostemsearchedterm %in% wordStem(lightterms)) {temprow[1,9] <- "Light-Rhetoric"}
+                  if(TMThermostemsearchedterm %in% wordStem(coldterms)) {temprow[1,9] <- "Cold-Rhetoric"}
+                  if(TMThermostemsearchedterm %in% wordStem(darkterms)) {temprow[1,9] <- "Dark-Rhetoric"}
+                temprow[1,10] <- as.character(paste(shorttempvec,sep= " ",collapse=" "))
+                temprow[1,11] <- as.character(paste(POStempvec,sep= " ",collapse=" "))
+                temprow[1,12] <- format(Sys.time(), "%Y-%m-%d")
+                temprow[1,13] <- as.numeric(as.character(p))
+                TMThermoWordFlagmat <- rbind(TMThermoWordFlagmat,temprow)
+              }
+          }
+        }
+        print(files[i]) #let's user watch as code runs for long searches
+      }
+      TMThermoWordFlagmat <- TMThermoWordFlagmat[-1,]
+      TMThermoWordFlagdf <- as.data.frame(TMThermoWordFlagmat)
+      write.table(TMThermoWordFlagdf, TMThermoWordFlagdfFullPath)
+  }else{
+    print("Loading the previous dataset as TMThermoWordFlagdf")
+    TMThermoWordFlagdf <- read.table(TMThermoWordFlagdfFullPath)
+  }
+}else{print("If you wanted to view this application, see start of this section")}
+```
+
+We can visualize the places in the text where Heat, Light, Cold, or Dark Rhetoric appear graphically. These scatterplots are not usually that helpful as visualizations, but occassionally they can draw our attention to interesting features.  For instance, while heat terms appear throughout, "fire" seems to principly appear at the opening and near the end, while darkness seems to grow in frequency towards in the second half of the novel.
+
+```{r}
+if(TMThermoApp == TRUE) {
+  library(RColorBrewer)
+
+  p <- ggplot(TMThermoWordFlagdf, aes(y = as.factor(TMThermostemsearchedterm), x = as.numeric(as.character(Lemma_Perc)), color = Category, label = Short_KWIC))
+      pg <- geom_point(size=1,pch = 16)
+      pl <- p + pg + labs(x = "Lemma %", y = "Searched Term (stemmed)", title = "Appearances of Thermodynamics Rhetoric within \nThe Time Machine") + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
+      ggplotly(pl)
+}else{print("If you wanted to view this application, change parameters at the beginning of this section.")}
+```
+
+We can also create a word cloud to learn more about the context in which these four types of rhetoric usually appear. In this case, we don't learn much. largely because 4 categories is stressing the limits of the quanteda package's comparative word cloud function, and lots of terms are omitted from the list. But it does catch (as one might expect) that Morlock's are frequently associated with darkenss in the text.
+
+```{r}
+if(TMThermoApp == TRUE) {
+  TMThermoWordFlagdf$KWIC <- as.character(TMThermoWordFlagdf$KWIC)
+  TMThermoWordFlagdf$Text <- as.character(TMThermoWordFlagdf$Text)
+corpus <- corpus(TMThermoWordFlagdf, 
+                 docid_field="Text", 
+                 text_field="KWIC")
+group_TMThermoWordFlagdf <- dfm(corpus, remove=c(stopwords("en"),heatterms,coldterms,lightterms,darkterms), remove_punct=TRUE, remove_numbers = TRUE, groups="Category")
+textplot_wordcloud(group_TMThermoWordFlagdf,max.words=50, colors = RColorBrewer::brewer.pal(8,"Dark2"), comparison=TRUE)
+
+}else{print("To view Applications, change parameters at the beginning of this section.")}
+
+```
+
+But what we're really interested in the case of the Time Machine is how these rhetorics appear in different settings. So in this case it may actually be helpful to break the text down in chapters instead.
+
+
+```{r}
+
+if(TMThermoApp == TRUE) {
+      if(file.exists(TMThermoWordFlagdfChaptersPath) == TRUE) {
+        TMThermoDataChange2 <- FALSE
+        print("The previous TMThermoWordFlagdf still exists.")
+      }else{
+        TMThermoDataChange2 <- TRUE
+        print("The previous TMThermowordFlagdf seems to have been moved or deleted.  A new TMThermoWordFlag will therefore be created.")
+        }
+
+  if(TMThermoDataChange2 == TRUE) {
+  
+      files <- list.files(path = TMThermodoclocation2, pattern = "txt", full.names = TRUE) #creates vector of txt file names.
+      if(file.exists(TMThermooutputlocation) == FALSE){dir.create(TMThermooutputlocation)}
+      TMThermostemsearchedtermlist <- unique(wordStem(TMThermosearchedtermlist)) #lemmatizes the list of terms you want to search for.
+      TMThermoWordFlagmat <- matrix(,ncol=15,nrow=1)
+      for (i in 1:length(files)) {
+        fileName <- read_file(files[i])
+        Encoding(fileName) <- "UTF-8"  #since tokenize_sentences function requires things to be encoded in UTF-8, need to remove some data.
+        fileName <- iconv(fileName, "UTF-8", "UTF-8",sub='')
+        ltoken <- tokenize_words(fileName, lowercase = TRUE, stopwords = NULL, simplify = FALSE)
+        ltoken <- unlist(ltoken)
+        stemltoken <- wordStem(ltoken) #this uses the Snowball library to lemmatize the entire text.
+        textID <- i
+        for (p in 1:length(TMThermostemsearchedtermlist)) {
+          TMThermostemsearchedterm <- TMThermostemsearchedtermlist[p]
+          for (j in 1:length(stemltoken)) {
+              if (TMThermostemsearchedterm == stemltoken[j]) {
+                if (j <= TMThermolongconlength) {longtempvec <- ltoken[(1:(j+TMThermolongconlength))]}
+                if (j > TMThermolongconlength) {longtempvec <- ltoken[(j-TMThermolongconlength):(j+TMThermolongconlength)]}
+                if (j <= TMThermoshortconlength) {shorttempvec <- ltoken[(1:(j+TMThermoshortconlength))]}
+                if (j > TMThermoshortconlength) {shorttempvec <- ltoken[(j-TMThermoshortconlength):(j+TMThermoshortconlength)]}
+                if (j <= TMThermoPOSconlength) {POStempvec <- ltoken[(1:(j+TMThermoPOSconlength))]}
+                if (j > TMThermoPOSconlength) {POStempvec <- ltoken[(j-TMThermoPOSconlength):(j+TMThermoPOSconlength)]}
+                TempTextName <- gsub(paste0(TMThermodoclocation2,"/"),"",files[i]) #This grabs just the end of the file path.
+                TempTextName <- gsub(".txt","",TempTextName) #This removes the .txt from the end of the name.
+                temprow <- matrix(,ncol=15,nrow=1)
+                colnames(temprow) <- c("Text", "Text_ID", "TMThermostemsearchedterm","Lemma","Lemma_Perc","KWIC","Total_Lemma","Date","Category","Short_KWIC","POS_KWIC","Current_Date","TMThermostemsearchedtermID","Chapter","Setting")
+                temprow[1,1] <- TempTextName
+                temprow[1,2] <- textID
+                temprow[1,3] <- TMThermostemsearchedterm
+                temprow[1,4] <- j
+                temprow[1,5] <- (j/length(stemltoken))*100
+                temprow[1,6] <- as.character(paste(longtempvec,sep= " ",collapse=" "))
+                temprow[1,7] <- length(stemltoken)
+                temprow[1,8] <- strsplit(TempTextName,"_")[[1]][2]
+                #Determining Category
+                  if(TMThermostemsearchedterm %in% wordStem(heatterms)) {temprow[1,9] <- "Heat-Rhetoric"}
+                  if(TMThermostemsearchedterm %in% wordStem(lightterms)) {temprow[1,9] <- "Light-Rhetoric"}
+                  if(TMThermostemsearchedterm %in% wordStem(coldterms)) {temprow[1,9] <- "Cold-Rhetoric"}
+                  if(TMThermostemsearchedterm %in% wordStem(darkterms)) {temprow[1,9] <- "Dark-Rhetoric"}
+                temprow[1,10] <- as.character(paste(shorttempvec,sep= " ",collapse=" "))
+                temprow[1,11] <- as.character(paste(POStempvec,sep= " ",collapse=" "))
+                temprow[1,12] <- format(Sys.time(), "%Y-%m-%d")
+                temprow[1,13] <- as.numeric(as.character(p))
+                temprow[1,14] <- as.character(strsplit(TempTextName,"_")[[1]][4])
+                if(temprow[1,14] %in% c("01","02","03","15","16","17")) {temprow[1,15] <- "1895"}
+                if(temprow[1,14] %in% c("03","04","05","06","07","08","09","10","11","12","13")) {temprow[1,15] <- "802701"}
+                if (temprow[1,14] %in% c("14")) {temprow[1,15] <- "30000000"}
+                TMThermoWordFlagmat <- rbind(TMThermoWordFlagmat,temprow)
+              }
+          }
+        }
+        print(files[i]) #let's user watch as code runs for long searches
+      }
+      TMThermoWordFlagmat <- TMThermoWordFlagmat[-1,]
+      TMThermoWordFlagdfCh <- as.data.frame(TMThermoWordFlagmat)
+      write.table(TMThermoWordFlagdfCh, TMThermoWordFlagdfChaptersPath)
+  }else{
+    print("Loading the previous dataset as TMThermoWordFlagdf")
+    TMThermoWordFlagdfCh <- read.table(TMThermoWordFlagdfChaptersPath)
+  }
+}else{print("If you wanted to view this application, see start of this section")}
+```
+
+Again, we can visualize where each reference is within the chapters (to follow the narrative path, read each chapter left to right, moving up from bottom to top in a zig-zag pattern).  It should be clear almost immediately that the early chapters primarily contain references to heat and light, the middle chapters introduce darkness and cold, and we return to heat and light.
+
+```{r}
+if(TMThermoApp == TRUE) {
+  library(RColorBrewer)
+
+  p <- ggplot(TMThermoWordFlagdfCh, aes(y = as.factor(Chapter), x = as.numeric(as.character(Lemma_Perc)), color = Category, label = Short_KWIC))
+      pg <- geom_point(size=1,pch = 16)
+      pl <- p + pg + labs(x = "Lemma %", y = "Chapter", title = "Appearances of Thermodynamics Rhetoric within \nThe Time Machine") + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
+      ggplotly(pl)
+}else{print("If you wanted to view this application, change parameters at the beginning of this section.")}
+```
+
+We can make this even clearer by creating a binned heat map.  First, we add all the values to find the frequency of each category per chapter.
+
+```{r}
+if(TMThermoApp == TRUE) {
+  # Adding values from TMThermoWordFlagdf together to get a matrix of normalized frequencies for each category, as TMThermoFreqmat
+      TMThermoWordFlagdfChHeat <- TMThermoWordFlagdfCh[grep("Heat-Rhetoric",TMThermoWordFlagdfCh$Category),]
+      TMThermoWordFlagdfChLight <- TMThermoWordFlagdfCh[grep("Light-Rhetoric",TMThermoWordFlagdfCh$Category),]
+      TMThermoWordFlagdfChCold <- TMThermoWordFlagdfCh[grep("Cold-Rhetoric",TMThermoWordFlagdfCh$Category),]
+      TMThermoWordFlagdfChDark <- TMThermoWordFlagdfCh[grep("Dark-Rhetoric",TMThermoWordFlagdfCh$Category),]
+      TMThermoFreqmat <- matrix(,ncol=9,nrow=1)
+      files <- list.files(path = TMThermodoclocation2, pattern = "txt", full.names = TRUE) #creates vector of txt file names.
+      for (i in 1:length(files)) {
+        TempTextName <- gsub(paste0(TMThermodoclocation2,"/"),"",files[i]) #This grabs just the end of the file path.
+        TempTextName <- gsub(".txt","",TempTextName) #This removes the .txt from the end of the name.
+        tempheatdf <- TMThermoWordFlagdfChHeat[grep(TempTextName,TMThermoWordFlagdfChHeat$Text),]
+        templightdf <- TMThermoWordFlagdfChLight[grep(TempTextName,TMThermoWordFlagdfChLight$Text),]
+        tempcolddf <- TMThermoWordFlagdfChCold[grep(TempTextName,TMThermoWordFlagdfChCold$Text),]
+        tempdarkdf <- TMThermoWordFlagdfChDark[grep(TempTextName,TMThermoWordFlagdfChDark$Text),]
+        TempCh <- strsplit(TempTextName,"_")[[1]][4]
+        #to be honest, TempLength got a way from me a bit, since not all tempdfs
+              #will have values.  So I kind of jury rigged an answer.
+              if(nrow(tempheatdf) >0) {TempLength <- tempheatdf$Total_Lemma[1]}
+              if(nrow(templightdf) >0) {TempLength <- templightdf$Total_Lemma[1]}
+              if(nrow(tempcolddf) >0) {TempLength <- tempcolddf$Total_Lemma[1]}
+              if(nrow(tempdarkdf) >0) {TempLength <- tempdarkdf$Total_Lemma[1]}
+        #I do the same with TempSetting
+              if(nrow(tempheatdf) >0) {TempSetting <- tempheatdf$Setting[1]}
+              if(nrow(templightdf) >0) {TempSetting <- templightdf$Setting[1]}
+              if(nrow(tempcolddf) >0) {TempSetting <- tempcolddf$Setting[1]}
+              if(nrow(tempdarkdf) >0) {TempSetting <- tempdarkdf$Setting[1]}
+        temprows <- matrix(,ncol=9,nrow=4)
+        colnames(temprows) <- c("Text", "Text_ID","Chapter","Category","Frequency","Total_Lemma","Normalized_Freq","Sample_KWIC","Setting")
+        temprows[1:4,1] <- as.character(TempTextName)
+        temprows[1:4,2] <- i
+        temprows[1:4,3] <- as.character(TempCh)
+        temprows[1,4] <- "Heat-Rhetoric"
+        temprows[2,4] <- "Light-Rhetoric"
+        temprows[3,4] <- "Cold-Rhetoric"
+        temprows[4,4] <- "Dark-Rhetoric"
+        temprows[1,5] <- nrow(tempheatdf)
+        temprows[2,5] <- nrow(templightdf)
+        temprows[3,5] <- nrow(tempcolddf)
+        temprows[4,5] <- nrow(tempdarkdf)
+        temprows[1:4,6]<- as.character(TempLength)
+        temprows[1,7] <- (as.numeric(temprows[1,5])/as.numeric(temprows[1,6]))*100
+        temprows[2,7] <- (as.numeric(temprows[2,5])/as.numeric(temprows[2,6]))*100
+        temprows[3,7] <- (as.numeric(temprows[3,5])/as.numeric(temprows[3,6]))*100
+        temprows[4,7] <- (as.numeric(temprows[4,5])/as.numeric(temprows[4,6]))*100
+        temprows[1,8] <- if(nrow(tempheatdf) > 0){
+                          as.character(sample(tempheatdf$Short_KWIC,1))
+                          }else{NA}
+        temprows[2,8] <- if(nrow(templightdf) >0) { 
+                          as.character(sample(templightdf$Short_KWIC,1))
+                          }else{NA}
+        temprows[3,8] <- if(nrow(tempcolddf) >0) { 
+                          as.character(sample(tempcolddf$Short_KWIC,1))
+                          }else{NA}
+        temprows[4,8] <- if(nrow(tempdarkdf) >0) { 
+                          as.character(sample(tempdarkdf$Short_KWIC,1))
+                          }else{NA}
+        temprows[1:4,9] <- as.character(TempSetting)
+        TMThermoFreqmat <- rbind(TMThermoFreqmat,temprows)
+      }
+      TMThermoFreqmat <- TMThermoFreqmat[-1,]
+      TMThermoFreqdf <- as.data.frame(TMThermoFreqmat)
+}else{print("If you wanted to view this application, change parameters above.")}
+```
+
+Then we can create a sort of heat map to follow how the frequency of terms changes per chapter.  This shows us that, as expected, references to cold seem to peak around Chapter 14 (the dying sun chapter), but also shows that surprisingly references to heat actually peak around chapter 12.
+
+```{r}
+if(TMThermoApp == TRUE) {
+
+      p <- ggplot(TMThermoFreqdf, aes(y = as.factor(Category), x= Chapter)) + geom_tile(aes(fill=as.numeric(as.character(Frequency))))
+      pl <- p +labs(x = "Chapter", y = "Category", title = "Appearances of Thermodynamics Rhetoric in The Time Machine") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank()) + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
+      print(pl)
+
+}else{print("If you wanted to view this application, change parameters above.")}
+```
+
+We can also rearrange this to reflect not the narrative as it is presented, but chronological time in the novel, by mapping the chapters onto the dates in which they occur. This makes it very clear that as the time traveller moves into the future, the text is increasingly concerned with thermodynamic concepts.
+```{r Binned Tile Plot}
+if(TMThermoApp == TRUE) {
+      TMThermoFreqdf$Setting <- factor(TMThermoFreqdf$Setting, levels = (unique(TMThermoFreqdf$Setting)))
+      p <- ggplot(TMThermoFreqdf, aes(y = as.factor(Category), x= factor((Setting)))) + geom_tile(aes(fill=as.numeric(as.character(Frequency))))
+      pl <- p +labs(x = "Setting", y = "Category", title = "Appearances of Thermodynamics Rhetoric in The Time Machine") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank())
+      print(pl)
+
+}else{print("If you wanted to view this application, change parameters above.")}
+```
+
+For aesthetics, you might wish to separate these categories and give them relevant color schemes.  But the result is the same: the narrative of Wells's *Time Machine* is one where thermodynamic concepts become increasingly important. However, this data visualization does not show that  earlier scenes are higher energy. For this insight, close readings are still required.
+
+```{r}
+if(TMThermoApp == TRUE) {
+      TMThermoFreqdf$Setting <- factor(TMThermoFreqdf$Setting, levels = (unique(TMThermoFreqdf$Setting)))    
+      
+      
+      TMThermoFreqdfHeat <- TMThermoFreqdf[grep("Heat-Rhetoric",TMThermoFreqdf$Category),]
+      TMThermoFreqdfLight <- TMThermoFreqdf[grep("Light-Rhetoric",TMThermoFreqdf$Category),]
+      TMThermoFreqdfCold <- TMThermoFreqdf[grep("Cold-Rhetoric",TMThermoFreqdf$Category),]
+      TMThermoFreqdfDark <- TMThermoFreqdf[grep("Dark-Rhetoric",TMThermoFreqdf$Category),]    
+      
+      
+      
+      
+      p1 <- ggplot(TMThermoFreqdfHeat, aes(y = as.numeric(as.character(Frequency)), x= factor((Setting)))) + geom_bar(stat="identity", aes(fill=Category)) 
+      pl1 <- p1 +labs(x = "Setting", y = "Frequency") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank())
+                                                              
+      p2 <- ggplot(TMThermoFreqdfLight, aes(y = as.numeric(as.character(Frequency)), x= factor((Setting)))) + geom_bar(stat="identity", aes(fill=Category)) 
+      pl2 <- p2 +labs(x = "Setting", y = "Frequency") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank())  
+                                                              
+      p3 <- ggplot(TMThermoFreqdfCold, aes(y = as.numeric(as.character(Frequency)), x= factor((Setting)))) + geom_bar(stat="identity", aes(fill=Category)) 
+      pl3 <- p3 +labs(x = "Setting", y = "Frequency") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank())   
+                                                              
+      p4 <- ggplot(TMThermoFreqdfDark, aes(y = as.numeric(as.character(Frequency)), x= factor((Setting)))) + geom_bar(stat="identity", aes(fill=Category)) 
+      pl4 <- p4 +labs(x = "Setting", y = "Frequency") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank()) + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
+
+      library(cowplot)
+      plot_grid(pl1,pl2,pl3,pl4,ncol=2,nrow=2)
+      
+      
+      
+}else{print("If you wanted to view this application, change parameters above.")}
+```
