@@ -9,13 +9,9 @@ output: html_document
 
 In my honors thesis at the University of Missouri, titled *Time Travel and Entropic Control in Victorian Literature*, I argued that scholarship on Wells tended to imply that Well's interest in thermodynamics and the concept of the heat death of the universe were limited limited to the scenes set 30 million years in the future.  In contrast, I argued that Well's interest in thermodynamics is evident throughout the text: that the low-energy death of the sun relies on his characterizations of the 1800s and 802,701 as higher energy systems. While there was certainly more focus on thermodynamic concepts in the scenes set further in the future, I pointed out that there was still some thermodynamic details to be interpreted earlier in the novel. The purpose of this section is to attempt to verify this by visualizing the appearance of certain terms associated with the thermodynamic concepts of heath, light, cold, and dark. As is common within the recreational reckoning methodology, the appearance of these concepts is picked up by the script by reference to terms such as "blaze," "bright," "blizzard," and "darkness."  The choice of terms is of course somewhat arbitrary: I have to the best of my ability included terms which I believe the Victorians associated with the concepts of heat, light, cold, and darkness, but this list is meant to be suggestive rather than comprehensive. The list cannot adjust for the context in which the term was used--for instance, "less heat" would be visualized as a reference to heat rather than a reference to cold.  But the hope is that on the large scale, these fine details blend in with the larger impression of the shape of the narrative: a shape which I believe will show a path from high energy to low energy states over the course of the novel.
 
-**To see this application, "TMThermoApp <- TRUE" must be entered in the parameters section below.**
-
 ```{r}
-TMThermoApp <- TRUE
-
 ## Other Parameters
-    TMThermolocation <- paste0(getwd(),"/Applications/Wells-1894-The-Time-Machine")
+    TMThermolocation <- paste0(getwd(),"/Wells-1894-The-Time-Machine")
     TMThermodoclocation1 <- paste0(TMThermolocation,"/Documents/Full")
     TMThermodoclocation2 <- paste0(TMThermolocation,"/Documents/Chapters")
     TMThermolongconlength <- 250
@@ -37,7 +33,6 @@ To create the data frame compiling every reference to a term **in the full novel
 
 ```{r TMThermoApp Word Flag}
 
-if(TMThermoApp == TRUE) {
       if(file.exists(TMThermoWordFlagdfFullPath) == TRUE) {
         TMThermoDataChange2 <- FALSE
         print("The previous TMThermoWordFlagdf still exists.")
@@ -104,26 +99,32 @@ if(TMThermoApp == TRUE) {
     print("Loading the previous dataset as TMThermoWordFlagdf")
     TMThermoWordFlagdf <- read.table(TMThermoWordFlagdfFullPath)
   }
-}else{print("If you wanted to view this application, see start of this section")}
+TMThermoWordFlagdf
 ```
 
 We can visualize the places in the text where Heat, Light, Cold, or Dark Rhetoric appear graphically. These scatterplots are not usually that helpful as visualizations, but occassionally they can draw our attention to interesting features.  For instance, while heat terms appear throughout, "fire" seems to principly appear at the opening and near the end, while darkness seems to grow in frequency towards in the second half of the novel.
 
 ```{r}
-if(TMThermoApp == TRUE) {
   library(RColorBrewer)
 
   p <- ggplot(TMThermoWordFlagdf, aes(y = as.factor(TMThermostemsearchedterm), x = as.numeric(as.character(Lemma_Perc)), color = Category, label = Short_KWIC))
       pg <- geom_point(size=1,pch = 16)
       pl <- p + pg + labs(x = "Lemma %", y = "Searched Term (stemmed)", title = "Appearances of Thermodynamics Rhetoric within \nThe Time Machine") + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
       ggplotly(pl)
-}else{print("If you wanted to view this application, change parameters at the beginning of this section.")}
+      
+
 ```
 
+We can see this a little better if we use the facet_wrap function. **It is now easier to see, for instance, that colness comes about primarily int he center and end of the novel, while the others are more distributed throughout.
+```{r, eval=FALSE}
+        p <- ggplot(TMThermoWordFlagdf, aes(y = as.factor(TMThermostemsearchedterm), x = as.numeric(as.character(Lemma_Perc)), color = Category))
+      pg <- geom_point(size=1,pch = 16)
+      pl <- p + pg + labs(x = "Lemma %", y = "Searched Term (stemmed)", title = "Appearances of Thermodynamics Rhetoric within \nThe Time Machine") + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black")) + facet_wrap(~TMThermoWordFlagdf$Category)
+      pl
+```
 We can also create a word cloud to learn more about the context in which these four types of rhetoric usually appear. In this case, we don't learn much. largely because 4 categories is stressing the limits of the quanteda package's comparative word cloud function, and lots of terms are omitted from the list. But it does catch (as one might expect) that Morlock's are frequently associated with darkenss in the text.
 
 ```{r}
-if(TMThermoApp == TRUE) {
   TMThermoWordFlagdf$KWIC <- as.character(TMThermoWordFlagdf$KWIC)
   TMThermoWordFlagdf$Text <- as.character(TMThermoWordFlagdf$Text)
 corpus <- corpus(TMThermoWordFlagdf, 
@@ -132,7 +133,6 @@ corpus <- corpus(TMThermoWordFlagdf,
 group_TMThermoWordFlagdf <- dfm(corpus, remove=c(stopwords("en"),heatterms,coldterms,lightterms,darkterms), remove_punct=TRUE, remove_numbers = TRUE, groups="Category")
 textplot_wordcloud(group_TMThermoWordFlagdf,max.words=50, colors = RColorBrewer::brewer.pal(8,"Dark2"), comparison=TRUE)
 
-}else{print("To view Applications, change parameters at the beginning of this section.")}
 
 ```
 
@@ -140,8 +140,6 @@ But what we're really interested in the case of the Time Machine is how these rh
 
 
 ```{r}
-
-if(TMThermoApp == TRUE) {
       if(file.exists(TMThermoWordFlagdfChaptersPath) == TRUE) {
         TMThermoDataChange2 <- FALSE
         print("The previous TMThermoWordFlagdf still exists.")
@@ -212,26 +210,32 @@ if(TMThermoApp == TRUE) {
     print("Loading the previous dataset as TMThermoWordFlagdf")
     TMThermoWordFlagdfCh <- read.table(TMThermoWordFlagdfChaptersPath)
   }
-}else{print("If you wanted to view this application, see start of this section")}
+TMThermoWordFlagdfCh
 ```
 
 Again, we can visualize where each reference is within the chapters (to follow the narrative path, read each chapter left to right, moving up from bottom to top in a zig-zag pattern).  It should be clear almost immediately that the early chapters primarily contain references to heat and light, the middle chapters introduce darkness and cold, and we return to heat and light.
 
 ```{r}
-if(TMThermoApp == TRUE) {
   library(RColorBrewer)
 
   p <- ggplot(TMThermoWordFlagdfCh, aes(y = as.factor(Chapter), x = as.numeric(as.character(Lemma_Perc)), color = Category, label = Short_KWIC))
       pg <- geom_point(size=1,pch = 16)
       pl <- p + pg + labs(x = "Lemma %", y = "Chapter", title = "Appearances of Thermodynamics Rhetoric within \nThe Time Machine") + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
       ggplotly(pl)
-}else{print("If you wanted to view this application, change parameters at the beginning of this section.")}
 ```
 
-We can make this even clearer by creating a binned heat map.  First, we add all the values to find the frequency of each category per chapter.
+Again, we can make this clearer through facet_wrap.
+```{r, eval=FALSE}
+        p <- ggplot(TMThermoWordFlagdfCh, aes(y = as.factor(Chapter), x = as.numeric(as.character(Lemma_Perc)), color = Category))
+      pg <- geom_point(size=1,pch = 16)
+      pl <- p + pg + labs(x = "Lemma %", y = "Chapter", title = "Appearances of Thermodynamics Rhetoric within \nThe Time Machine's Chapters") + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black")) + facet_wrap(~Category) 
+      pl
+```
+
+
+Or we can make this even clearer by creating a binned heat map.  First, we add all the values to find the frequency of each category per chapter.
 
 ```{r}
-if(TMThermoApp == TRUE) {
   # Adding values from TMThermoWordFlagdf together to get a matrix of normalized frequencies for each category, as TMThermoFreqmat
       TMThermoWordFlagdfChHeat <- TMThermoWordFlagdfCh[grep("Heat-Rhetoric",TMThermoWordFlagdfCh$Category),]
       TMThermoWordFlagdfChLight <- TMThermoWordFlagdfCh[grep("Light-Rhetoric",TMThermoWordFlagdfCh$Category),]
@@ -293,36 +297,32 @@ if(TMThermoApp == TRUE) {
       }
       TMThermoFreqmat <- TMThermoFreqmat[-1,]
       TMThermoFreqdf <- as.data.frame(TMThermoFreqmat)
-}else{print("If you wanted to view this application, change parameters above.")}
+      TMThermoFreqdf
 ```
 
 Then we can create a sort of heat map to follow how the frequency of terms changes per chapter.  This shows us that, as expected, references to cold seem to peak around Chapter 14 (the dying sun chapter), but also shows that surprisingly references to heat actually peak around chapter 12.
 
 ```{r}
-if(TMThermoApp == TRUE) {
+
 
       p <- ggplot(TMThermoFreqdf, aes(y = as.factor(Category), x= Chapter)) + geom_tile(aes(fill=as.numeric(as.character(Frequency))))
       pl <- p +labs(x = "Chapter", y = "Category", title = "Appearances of Thermodynamics Rhetoric in The Time Machine") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank()) + scale_colour_manual(values = c("Heat-Rhetoric" = "red", "Light-Rhetoric" = "yellow", "Cold-Rhetoric" = "blue", "Dark-Rhetoric" = "black"))
       print(pl)
 
-}else{print("If you wanted to view this application, change parameters above.")}
 ```
 
 We can also rearrange this to reflect not the narrative as it is presented, but chronological time in the novel, by mapping the chapters onto the dates in which they occur. This makes it very clear that as the time traveller moves into the future, the text is increasingly concerned with thermodynamic concepts.
 ```{r Binned Tile Plot}
-if(TMThermoApp == TRUE) {
       TMThermoFreqdf$Setting <- factor(TMThermoFreqdf$Setting, levels = (unique(TMThermoFreqdf$Setting)))
       p <- ggplot(TMThermoFreqdf, aes(y = as.factor(Category), x= factor((Setting)))) + geom_tile(aes(fill=as.numeric(as.character(Frequency))))
       pl <- p +labs(x = "Setting", y = "Category", title = "Appearances of Thermodynamics Rhetoric in The Time Machine") + theme(text = element_text(size=8), legend.position = "bottom", legend.title = element_blank())
       print(pl)
 
-}else{print("If you wanted to view this application, change parameters above.")}
 ```
 
 For aesthetics, you might wish to separate these categories and give them relevant color schemes.  But the result is the same: the narrative of Wells's *Time Machine* is one where thermodynamic concepts become increasingly important. However, this data visualization does not show that  earlier scenes are higher energy. For this insight, close readings are still required.
 
 ```{r}
-if(TMThermoApp == TRUE) {
       TMThermoFreqdf$Setting <- factor(TMThermoFreqdf$Setting, levels = (unique(TMThermoFreqdf$Setting)))    
       
       
@@ -349,7 +349,5 @@ if(TMThermoApp == TRUE) {
       library(cowplot)
       plot_grid(pl1,pl2,pl3,pl4,ncol=2,nrow=2)
       
-      
-      
-}else{print("If you wanted to view this application, change parameters above.")}
+
 ```
